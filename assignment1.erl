@@ -5,7 +5,8 @@
 -module(assignment1).
 
 -export([dividers_of/1, primes_up_to/1]).
-%-export([fibonacci_tree/1]).
+-export([fibonacci_tree_aux/1]).
+-export([fibonacci_tree/1]).
 %-export([factorize_initial_state/0, factorize/2, factorize_dispose_state/1]).
 
 % Part 1: a - dividers_of
@@ -26,6 +27,53 @@ primes_up_to([H|T]) ->
 primes_up_to(N) -> primes_up_to(lists:seq(2,N)).
 
 %primes_up_to(10) -> [2,3,5,7].
+
+% Part 2: fibonacci_tree
+-spec fibonacci_tree_aux(integer()) -> integer().
+
+fibonacci_tree_aux(N) when N =< 1 -> 
+	receive 
+		{From, sum} ->
+			io:format("Received message ~p~n", [sum]),
+			From ! {self, 1}
+	end;
+
+fibonacci_tree_aux(N) -> 
+	PIDleft = spawn(?MODULE, fibonacci_tree_aux, [N-2]),
+	PIDright = spawn(?MODULE, fibonacci_tree_aux, [N-1]),
+
+	receive
+		{From, sum} ->
+			PIDleft ! {self, sum},
+			PIDright ! {self, sum},
+
+			receive 
+				{PIDleft, SumLeft} -> io:format("Received message from left ~p~n", [SumLeft])
+			end,
+
+			receive 
+				{PIDright, SumRight} -> io:format("Received message from right ~p~n", [SumRight])
+			end,
+			From ! {self, SumLeft+SumRight+1}
+	end.
+	
+-spec fibonacci_tree(integer()) -> integer().
+
+fibonacci_tree(N) -> 
+	PIDleft = spawn(?MODULE, fibonacci_tree_aux, [N-2]),
+	PIDright = spawn(?MODULE, fibonacci_tree_aux, [N-1]),
+
+	PIDleft ! {self, sum},
+	PIDright ! {self, sum},
+
+	receive 
+		{PIDleft, SumLeft} -> io:format("Received message from left ~p~n", [SumLeft])
+	end,
+
+	receive 
+		{PIDright, SumRight} -> io:format("Received message from right ~p~n", [SumRight])
+	end,
+	SumLeft+SumRight+1.
 
 %fibonacci_tree(3) -> 5;
 %fibonacci_tree(4) -> 9.

@@ -5,9 +5,11 @@
 -module(assignment1).
 
 -export([dividers_of/1, primes_up_to/1]).
-%-export([fibonacci_tree_aux/1]).
+-export([fibonacci_tree_aux/1, test_fibonacci/0]).
 -export([fibonacci_tree/1]).
 %-export([factorize_initial_state/0, factorize/2, factorize_dispose_state/1]).
+
+-include_lib("eunit/include/eunit.hrl").
 
 
 % Part 1: a - dividers_of
@@ -67,6 +69,10 @@ fibonacci_tree(N) ->
 		{PIDright, SumRight} -> ok
 	end,
 	SumLeft+SumRight+1.
+
+test_fibonacci() ->
+	?assert(fibonacci_tree(10) =:= 177),
+	?assert(fibonacci_tree(15) =:= 1973).
 
 %fibonacci_tree(3) -> 5;
 %fibonacci_tree(4) -> 9.

@@ -7,7 +7,8 @@
 -export([dividers_of/1, primes_up_to/1]).
 -export([fibonacci_tree_aux/1, test_fibonacci/0]).
 -export([fibonacci_tree/1]).
-%-export([factorize_initial_state/0, factorize/2, factorize_dispose_state/1]).
+-export([factorize_initial_state/0, factorize/2]).%, factorize_dispose_state/1]).
+-export([prime_tree/3]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -55,20 +56,12 @@ fibonacci_tree_aux(N) ->
 -spec fibonacci_tree(integer()) -> integer().
 fibonacci_tree(N) when N =< 1 -> 1;
 fibonacci_tree(N) -> 
-	PIDleft = spawn(?MODULE, fibonacci_tree_aux, [N-2]),
-	PIDright = spawn(?MODULE, fibonacci_tree_aux, [N-1]),
-
-	PIDleft ! {self(), sum},
-	PIDright ! {self(), sum},
+	Root = spawn(?MODULE, fibonacci_tree_aux, [N]),
+	Root ! {self(), sum},
 
 	receive 
-		{PIDleft, SumLeft} -> ok
-	end,
-
-	receive 
-		{PIDright, SumRight} -> ok
-	end,
-	SumLeft+SumRight+1.
+		{Root, SumLeft} -> SumLeft
+	end.
 
 test_fibonacci() ->
 	?assert(fibonacci_tree(10) =:= 177),
@@ -77,7 +70,44 @@ test_fibonacci() ->
 %fibonacci_tree(3) -> 5;
 %fibonacci_tree(4) -> 9.
 
-%-spec factorize_initial_state() -> State :: term().
-%
-%-spec factorize(integer(), State :: term()) ->
-%    {[integer()], NewState :: term()}.
+prime_tree(N, Known_primes, Parent) ->
+	case dict:find(N, Known_primes) of
+		{ok, [Result | _]} ->
+			{Result, Known_primes};
+		_ ->
+			Divs = [X || X <- lists:seq(N div 2, 2, -1), N rem X == 0],
+			case Divs of
+				[] -> Parent ! {[N], dict:append(N, [N], Known_primes)};
+				[H | _] ->
+					spawn(?MODULE, prime_tree, [H, Known_primes, self()]),
+					spawn(?MODULE, prime_tree, [N div H, Known_primes, self()]),
+					receive
+						{Fact1, Known1} -> ok
+					end,
+					receive
+						{Fact2, Known2} -> ok
+					end,
+					Extended_known = dict:merge(fun(_, _, V) -> V end, 
+						Known1, Known2),
+					Factors = Fact1 ++ Fact2,
+					Parent ! {Factors, dict:append(N, Factors, Extended_known)}
+			end
+	end.
+
+-spec factorize_initial_state() -> State :: term().
+
+factorize_initial_state() -> dict:new().
+
+-spec factorize(integer(), State :: term()) ->
+    {[integer()], NewState :: term()}.
+
+
+factorize(N, States) -> 
+	case dict:find(N, States) of
+		{ok, [Result | _]} -> {Result, States};
+		_ ->
+			spawn(?MODULE, prime_tree, [N, States, self()]),
+			receive
+				Result -> Result
+			end
+	end.

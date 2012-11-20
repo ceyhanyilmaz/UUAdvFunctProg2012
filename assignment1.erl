@@ -5,19 +5,21 @@
 -module(assignment1).
 
 -export([dividers_of/1, primes_up_to/1]).
--export([fibonacci_tree_aux/1]).
+%-export([fibonacci_tree_aux/1]).
 -export([fibonacci_tree/1]).
 %-export([factorize_initial_state/0, factorize/2, factorize_dispose_state/1]).
 
 
 % Part 1: a - dividers_of
 -spec dividers_of(integer()) -> [integer()].
+dividers_of(N) when N =< 1 -> [];
 dividers_of(N) -> [X || X <- lists:seq(2,N-1), N rem X == 0].
 
 %assignment1:dividers_of(20).% == [2,4,5,10].
 
 % Part 1: b - primes_up_to
 -spec primes_up_to(integer()) -> [integer()].
+primes_up_to(N) when N =< 1 -> [];
 primes_up_to(N) -> [X || X <- lists:seq(2,N), dividers_of(X) ==  []].
 
 

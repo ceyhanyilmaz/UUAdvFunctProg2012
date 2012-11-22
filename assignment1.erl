@@ -7,28 +7,22 @@
 -export([dividers_of/1, primes_up_to/1]).
 -export([fibonacci_tree_aux/1, test_fibonacci/0]).
 -export([fibonacci_tree/1]).
--export([factorize_initial_state/0, factorize/2]).%, factorize_dispose_state/1]).
+-export([factorize_initial_state/0, factorize/2]).
 -export([prime_tree/3]).
 
 -include_lib("eunit/include/eunit.hrl").
 
 
-% Part 1: a - dividers_of
--spec dividers_of(integer()) -> [integer()].
+% Part 1: List Comprehension
 dividers_of(N) when N =< 1 -> [];
 dividers_of(N) -> [X || X <- lists:seq(2,N-1), N rem X == 0].
 
-%assignment1:dividers_of(20).% == [2,4,5,10].
 
-% Part 1: b - primes_up_to
--spec primes_up_to(integer()) -> [integer()].
 primes_up_to(N) when N =< 1 -> [];
 primes_up_to(N) -> [X || X <- lists:seq(2,N), dividers_of(X) ==  []].
 
 
-% Part 2: fibonacci_tree
--spec fibonacci_tree_aux(integer()) -> integer().
-
+% Part 2: Fibonacci Trees
 fibonacci_tree_aux(N) when N =< 1 -> 
 	receive 
 		{From, sum} ->
@@ -53,7 +47,6 @@ fibonacci_tree_aux(N) ->
 			From ! {self(), SumLeft+SumRight+1}
 	end.
 	
--spec fibonacci_tree(integer()) -> integer().
 fibonacci_tree(N) when N =< 1 -> 1;
 fibonacci_tree(N) -> 
 	Root = spawn(?MODULE, fibonacci_tree_aux, [N]),
@@ -67,9 +60,8 @@ test_fibonacci() ->
 	?assert(fibonacci_tree(10) =:= 177),
 	?assert(fibonacci_tree(15) =:= 1973).
 
-%fibonacci_tree(3) -> 5;
-%fibonacci_tree(4) -> 9.
 
+% Part 3: Factorization of Large Integers
 prime_tree(N, Known_primes, Parent) ->
 	case dict:find(N, Known_primes) of
 		{ok, [Result | _]} ->
@@ -94,13 +86,7 @@ prime_tree(N, Known_primes, Parent) ->
 			end
 	end.
 
--spec factorize_initial_state() -> State :: term().
-
 factorize_initial_state() -> dict:new().
-
--spec factorize(integer(), State :: term()) ->
-    {[integer()], NewState :: term()}.
-
 
 factorize(N, States) -> 
 	case dict:find(N, States) of

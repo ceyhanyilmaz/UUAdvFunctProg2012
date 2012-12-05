@@ -15,6 +15,9 @@
 (defun sum-int (key value sofar)
   (+ value sofar))
 
+(defun print-keys (key value l)
+  (cons key l))
+
 (defstruct (node
   (:constructor nil)
   (:constructor new-node (key value left right)))
@@ -67,6 +70,9 @@
 
 (defun fold (fun dict initial)
   (fold-aux fun (dicttree-root dict) initial))
+
+(defun keys (dict)
+  (fold 'print-keys dict ()))
 
 #|
 (defun balance-aux (root)

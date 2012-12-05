@@ -64,15 +64,19 @@
 (defun fold-aux (fun root initial)
   (cond
     ((null root) initial)
-    (t (funcall fun (node-key root) (node-value root)
-                (fold-aux fun (node-left root)
-                          (fold-aux fun (node-right root) initial))))))
+    (t (fold-aux fun (node-left root)
+            (funcall fun (node-key root) (node-value root)
+                                  (fold-aux fun (node-right root) initial))))))
 
 (defun fold (fun dict initial)
   (fold-aux fun (dicttree-root dict) initial))
 
 (defun keys (dict)
   (fold 'print-keys dict ()))
+
+(defun samekeys (dict1 dict2)
+  (equal (keys dict1) (keys dict2)))
+
 
 #|
 (defun balance-aux (root)
@@ -88,7 +92,6 @@
            ((bal > 1) RIGHTLEFT/RIGHTRIGHT)
            (t (list (new-node (node-key root) (node-valueroot)
                               (first left) (first right))
-                     height
-
-                     )))))))
+                     (+ 1 (max (second left) (third left)))  
+                      (+ 1 (max (second right) (third right))))))))))
 |#

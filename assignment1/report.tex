@@ -1,0 +1,46 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{fullpage}
+
+\usepackage{amsmath}
+
+\title{\textbf{Advanced Functional Programming \\
+    Uppsala University -- Autumn 2012 \\
+    Assignment $1$ % replace n by 1, 2, or 3
+  }
+}
+
+\author{Anders Hassis \and Jonatan Jansson}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{List comprehension}
+
+The idea of \texttt{dividers\_of} is to use list comprehension to create a list (using the standard \texttt{lists:seq}) of all dividers of a given value $n$. We remove all values where the remainder is not $0$. Note that $1$ and $n$ are excluded from the result as they are trivial.
+
+In \texttt{primes\_up\_to} the idea is the same but instead of filtering on remainders we use the \texttt{dividers\_of} and only keep the values with no dividers as they are prime by definition.
+
+\section{Fibonacci trees}
+
+The idea of \texttt{fibonacci\_tree} is to use the \emph{process} and \emph{message} system in Erlang to calculate a sum of nodes in a \emph{fibonacci tree}. This is done by creating a node as root. When a node gets a value of $0$ or $1$ it is considered a leaf node. Other values $n$ causes the node to expand further by creating two child nodes getting the values $n-1$ and $n-2$. The task of each node is to calculate the number of nodes in the subtree in which it is root.
+
+A non-leaf node is implemented to spawn $2$ new processes and waits for a \emph{sum}-message to arrive from its parent. The message is passed on to both children. The node waits for an answer from the children, calculates the size of its subtree using the answers, and sends the sum back to its parent.
+
+A leaf node simply waits for a \emph{sum}-message to arrive from its parent and sends $1$ back as the number of nodes in a tree containing only a leaf is always $1$.
+
+To test the behaviour of \texttt{fibonacci\_tree}, use the function \texttt{test\_fibonacci()}. The function test the function for values $10$ and $15$.
+
+\section{Factorization of large integers}
+
+The idea of \texttt{factorize} is to find the prime factors of a number $n$ using a state to remember previous calculations to improve speed. We have implemented the state as a \emph{dictionary} from the built-in library \texttt{dict}. The reason for this is that a \emph{dictionary} has fast random access time, both for reads and writes.
+
+To \emph{factorize} a number the state is first checked. If the number is already calculated, the result is returned directly from the state. Otherwise a process tree is created to calculate the prime factors. Each node creates a list $l$ of dividers of the given value. If $l$ is empty the value is prime and is inserted to the state. The value is also returned to the parent as a list, together with the new state.
+
+If the value is not prime, the first divider $d$ in $l$ is chosen. Note the the $l$ is created in decreasing order. The reason for this is to slightly improve the balance of the tree as the lowest divider is always prime. The node then spawns two new nodes, one for $d$ and one for the other divider $n / d$, to calculate the prime factors of those values. The current node waits for replies from both child nodes (note the similarity to the \emph{fibonacci tree}).
+
+When both children have replied, the resluting states are merged. The resulting lists are appended as the result will be a list of the prime factors for the current node. The list will be returned to the parent together with the merge of the two states, with the value $n$ added.
+
+\end{document}

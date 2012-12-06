@@ -47,17 +47,29 @@
   (cond
     ((null root) (new-node key value nil nil))
     (t (case (funcall compare key (node-key root))
-         (eq (new-node key value (node-left root) (node-right root)))
-         (lt (new-node (node-key root) (node-value root)
-                       (update-aux key value (node-left root) compare)
+         (eq (new-node key
+                       value
+                       (node-left root)
                        (node-right root)))
-         (otherwise (new-node (node-key root) (node-value root)
-                              (node-left root)
-                              (update-aux key value
-                                          (node-right root) compare)))))))
+         (lt
+           (let ((result (update-aux key value (node-left root) compare)))
+             (new-node (node-key root)
+                       (node-value root)
+                       result
+                       (node-right root))))
+
+         (otherwise
+           (let ((result (update-aux key value (node-right root) compare)))
+             (new-node (node-key root)
+                       (node-value root)
+                       (node-left root)
+                       result)))))))
+
 
 (defun update (key value dict)
-  (new-dictionary (update-aux key value (dicttree-root dict)
+  (new-dictionary (update-aux key
+                              value
+                              (dicttree-root dict)
                               (dicttree-compare dict))
                   (dicttree-compare dict)))
 
@@ -77,21 +89,24 @@
 (defun samekeys (dict1 dict2)
   (equal (keys dict1) (keys dict2)))
 
+(defun balance-aux (llist)
+  (let ((length (list-length llist)))
+    (case length
+      (0 'nil)
+      (1 (new-node (first (first llist))
+                   (second (first llist))
+                   nil
+                   nil))
+      (otherwise
+        (let ((pivot (floor length 2)))
+          (new-node (first (nth pivot llist))
+                    (second (nth pivot llist))
+                    (balance-aux (subseq llist 0 pivot))
+                    (balance-aux (nthcdr (+ 1 pivot) llist))))))))
 
-#|
-(defun balance-aux (root)
-  (cond
-    ((null root) '(nil 0 0))
-    (t (let ((left balance-aux(node-left root))
-             (right balance-aux(node-right root))
-             (left-bal (- (second left) (third left)))
-             (right-bal (- (second right) (third right)))
-             (bal (- left-bal right-bal)))
-         (cond
-           ((bal < -1) LEFTRIGHT/LEFTLEFT)
-           ((bal > 1) RIGHTLEFT/RIGHTRIGHT)
-           (t (list (new-node (node-key root) (node-valueroot)
-                              (first left) (first right))
-                     (+ 1 (max (second left) (third left)))  
-                      (+ 1 (max (second right) (third right))))))))))
-|#
+(defun tree-list (key value l)
+  (cons (list key value) l))
+
+(defun balance (dict)
+  (new-dictionary (balance-aux (fold 'tree-list dict ()))
+                  (dicttree-compare dict)))

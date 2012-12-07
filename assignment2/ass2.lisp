@@ -1,4 +1,5 @@
 ;; How handle dict = nil??!?
+;;(load "assignment2/lisp-unit.lisp")
 
 (defun string-compare (str1 str2)
   (cond
@@ -110,3 +111,15 @@
 (defun balance (dict)
   (new-dictionary (balance-aux (fold 'tree-list dict ()))
                   (dicttree-compare dict)))
+
+(define-test create-dictionary
+  (assert-equal dicttree-root create-dictionary)
+  )
+
+;; Macros
+(defmacro with-keys ((key value dict) body)
+
+)
+
+;(defmacro match-pattern (expr &rest patternlist)
+;  (cons 'cond '(loop for p in patternlist collect (progn ''(equal )))))

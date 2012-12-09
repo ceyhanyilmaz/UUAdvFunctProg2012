@@ -21,7 +21,7 @@
 
 Our solution revolves around two data structures \texttt{node} and \texttt{dicttree}. \texttt{node} contains \emph{key, value, left, right} and \texttt{dicttree} contains \emph{root, compare} where compare is a function that will defines how comparing should be handled.
 
-The \emph{node}-structure is created as a binary tree to contain all key value-pairs and is sorted with the lowest value, according to the \emph{compare}-function in \textt{dicttree}, to the left.
+The \emph{node}-structure is created as a binary tree to contain all key value-pairs and is sorted with the lowest value, according to the \emph{compare}-function in \texttt{dicttree}, to the left.
 
 \subsection{create-dictionary}
 \texttt{create-dictionary} is defined as a constructor for our \texttt{dicttree} structure. If no argument is given, \texttt{string-compare} is used as default.
@@ -33,13 +33,13 @@ The \emph{node}-structure is created as a binary tree to contain all key value-p
 \texttt{update} creates a new dictionary with the same content as a given dictionary, but with a new key value-pair added. If the value exists in the dictionary it is updated with the new value.
 
 \subsection{fold}
-\texttt{fold} traverses through the dictionary in-order and applies a given function to each key value-pair.
+\texttt{fold} traverses through the dictionary in-order and applies a given function to each key value-pair. It should be noted that due to the order of the recursive calls, the fold will always be performed in-order from smallest to highest key.
 
 \subsection{rebalance}
 \texttt{rebalance} makes a list of all elements in our tree, chooses a pivot element in the middle as root and splits the list in two halves. Each half becomes a subtree which in their are split in half to recursively create a binary tree. Since its always split in halves, all subtrees will be balanced.
 
 \subsection{keys}
-\texttt{keys} make use of our \texttt{fold}-function together with the \texttt{print-keys }function  that just prints the current key.
+\texttt{keys} make use of our \texttt{fold}-function together with the \texttt{print-keys}-function that just prints the current key.
 
 \subsection{samekeys}
 Since our \texttt{fold-aux} makes sure the tree is always sorted the same way. \texttt{samekeys} compares the keys \texttt{dict1} and \texttt{dict2} from the \texttt{keys}-function and checks if they are the same using the built-in \texttt{equal}-function. This is however not an optimal solution and could be improved.
@@ -47,8 +47,11 @@ Since our \texttt{fold-aux} makes sure the tree is always sorted the same way. \
 \section{Macros}
 
 \subsection{with-keys}
-\texttt{with-keys} is implemented as a macro applying a function to each key value-pair in the dictionary.
+\texttt{with-keys} is implemented as a recursive macro applying a function to the key value-pair of the root-node of the dictionary and then performs a recursive call on each child node. By doing this the function will be applied to all key value-pairs in the dictionary.
 
 \subsection{match-pattern}
+\texttt{match-pattern} is supposed to choose an expression to evaluate depending on a certain pattern. We did not manage to implement this macro, but a draft can be found as a comment in the bottom of the code file.
+
+Note that the draft only contains the traversing of the pattern list and not the actual matching, which, in our idea of a possible solution, would be done in another macro \texttt{matching}. It should also be noted that the draft does not work, but is only included to briefly describe our ideas of how to solve the problem.
 
 \end{document}

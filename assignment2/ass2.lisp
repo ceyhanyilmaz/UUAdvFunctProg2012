@@ -125,5 +125,10 @@
                    (,traverse (node-right ,root))))))
         (,traverse (dicttree-root ,dict)))))
 
-;(defmacro match-pattern (expr &rest patternlist)
-;  (cons 'cond '(loop for p in patternlist collect (progn ''(equal )))))
+#|
+(defmacro match-pattern (expr &rest patterns)
+  `(cond
+    ((null ,patterns) nil)
+    ((matching ,expr ,(first (first patterns))) (funcall ,(second (first patterns))))
+    (t (,match-pattern ,(expr ,(rest patterns))))))
+|#

@@ -40,3 +40,12 @@ update key value (Dict root cmp def) =
 
 test7 = update_aux 5 5 test compare
 test8 = loookup (update 1 1 test3) 1
+
+papercuts_aux :: [Char] -> [Char] -> [([Char], [Char])] -> [([Char], [Char])]
+papercuts_aux str "" list = [(str,"")]
+papercuts_aux "" (x:str) list = list++[("",x:str)]++papercuts_aux [x] str list
+papercuts_aux y (x:str) list = list++[(y,x:str)]++papercuts_aux (y++[x]) str list
+
+papercuts :: [Char] -> [([Char], [Char])]
+papercuts str = papercuts_aux "" str []
+

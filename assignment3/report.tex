@@ -45,7 +45,11 @@ The \emph{Tree}-structure is created as a binary tree to contain all key value-p
 
 \subsection{keys}
 
-\texttt{keys} make use of our \texttt{fold}-function together with the \texttt{print-keys}-function that just prints the current key.
+\texttt{keys} make use of our \texttt{fold}-function and accumulating all keys to a single list.
+
+\subsection{samekeys}
+
+Takes two dictionaries as argument, then uses generates list of keys from the \texttt{keys}-function and then compares these two by using \texttt{list\_equals}-function element by element.
 
 \section{Cuttings}
 

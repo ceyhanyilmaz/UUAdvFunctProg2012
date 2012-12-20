@@ -1,0 +1,59 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{fullpage}
+
+\usepackage{amsmath}
+
+\title{\textbf{Advanced Functional Programming \\
+    Uppsala University -- Autumn 2012 \\
+    Assignment $3$ % replace n by 1, 2, or 3
+  }
+}
+
+\author{Anders Hassis \and Jonatan Jansson}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Dictionaries}
+
+Our solution revolves around two data structures \texttt{Tree} and \texttt{Dictionary}. \texttt{Tree} contains \emph{key, value, left, right} and \texttt{Dictionary} contains \emph{root, compare} where compare is a function that will defines how comparing should be handled.
+
+The \emph{Tree}-structure is created as a binary tree to contain all key value-pairs and is sorted with the lowest value, according to the \emph{compare}-function in \texttt{Dictionary}, to the left.
+
+\subsection{create-dictionary}
+
+\texttt{create-dictionary} is defined as a constructor for our \texttt{Dictionary} structure. If no argument is given, the built-in function \texttt{compare} will be used as default.
+
+\subsection{lookup}
+
+\texttt{lookup} finds the value in a dictionary corresponding to a given key. This is done using a auxilary function \texttt{lookupaux} which finds a value in a node and its subnodes, given a key. We use pattern matching to match results based on the compare function.
+
+\subsection{update}
+
+\texttt{update} creates a new dictionary with the same content as a given dictionary, but with a new key value-pair added. If the value exists in the dictionary it is updated with the new value.
+
+\subsection{fold}
+
+\texttt{fold} traverses through the dictionary in-order and applies a given function to each key value-pair. It should be noted that due to the order of the recursive calls, the fold will always be performed in-order from smallest to highest key.
+
+\subsection{rebalance}
+
+\texttt{rebalance} makes a list of all elements in our tree, chooses a pivot element in the middle as root and splits the list in two halves. Each half becomes a subtree which in their are split in half to recursively create a binary tree. Since its always split in halves, all subtrees will be balanced.
+
+\subsection{keys}
+
+\texttt{keys} make use of our \texttt{fold}-function together with the \texttt{print-keys}-function that just prints the current key.
+
+\section{Cuttings}
+
+\texttt{papercuts} uses an auxilary function \texttt{papercutsaux} to step through the list
+
+\section{Lazy permutations}
+
+\section{Lazy word generation}
+
+
+\end{document}

@@ -1,3 +1,8 @@
+--
+-- Assignment 3
+-- Anders Hassis
+-- Jonatan Jansson
+--
 module Assignment(Dictionary(Dict), create_dictionary, lookup,
   update, fold, rebalance, keys, samekeys,
   papercuts, permutations, genwords) where
@@ -64,14 +69,12 @@ list_equals (h1:t1) (h2:t2) cmp
 samekeys :: Eq a => Dictionary a t -> Dictionary a t1 -> Ordering
 samekeys d1@(Dict _ cmp _) d2 = list_equals (keys d1) (keys d2) cmp
 
-
 papercuts_aux :: [Char] -> [Char] -> [([Char], [Char])]
 papercuts_aux s1 "" = [(s1,"")]
 papercuts_aux s1 s2@(h:t) = (s1,s2):(papercuts_aux (s1++[h]) t)
 
 papercuts :: [Char] -> [([Char], [Char])]
 papercuts s = papercuts_aux "" s
-
 
 delete :: Eq a => a -> [a] -> [a]
 delete _ [] = []

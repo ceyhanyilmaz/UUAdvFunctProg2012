@@ -1,10 +1,16 @@
-To run: 
+Conway's Game of Life in Erlang
+=============
+By Jonatan and Anders
 
-c("ehtml.erl").
-c("frame.erl").
-c("gol.erl").
+Instructions
+-------------
 
-frame:init().
-gol:init().
+* Compile files
+	* c("ehtml.erl").
+	* c("frame.erl").
+	* c("gol.erl").
 
-Then head to: http://localhost:8088/
+* frame:init().
+* gol:init().
+
+* Point your browser to http://localhost:8088/

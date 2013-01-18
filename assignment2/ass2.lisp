@@ -125,10 +125,31 @@
                    (,traverse (node-right ,root))))))
         (,traverse (dicttree-root ,dict)))))
 
-#|
-(defmacro match-pattern (expr &rest patterns)
+(defmacro match (expr pattern body)
   `(cond
-    ((null ,patterns) nil)
-    ((matching ,expr ,(first (first patterns))) (funcall ,(second (first patterns))))
-    (t (,match-pattern ,(expr ,(rest patterns))))))
-|#
+    (,(and (null expr) (null pattern)) ,body)
+    (,(atom (first pattern))
+      (let ((,(first pattern) ',(first expr)))
+        (match ,(rest expr) ,(rest pattern) ,body)))
+    (t (match ,(first expr) ,(first pattern)
+      (match ,(rest expr) ,(rest pattern) ,body)))))
+
+(defun ismatching (expr pattern)
+  (cond
+    ((and (null expr) (null pattern)) t)
+    ((or (null expr) (null pattern)) nil)
+    ((atom (first pattern)) (ismatching (rest expr) (rest pattern)))
+    ((atom (first expr)) nil)
+    (t (and (ismatching (first expr) (first pattern))
+            (ismatching (rest expr) (rest pattern))))))
+
+(defmacro pattern-match (expr patterns)
+  `(cond
+    (,(null patterns) nil)
+    (,(ismatching expr (first (first patterns)))
+      (match ,expr ,(first (first patterns)) ,(second (first patterns))))
+    (t (pattern-match ,expr ,(rest patterns)))))
+
+(defmacro match-pattern (expr &rest patterns)
+  `(pattern-match ,(eval expr) ,patterns))
+

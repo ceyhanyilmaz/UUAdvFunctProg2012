@@ -50,8 +50,17 @@ Since our \texttt{fold-aux} makes sure the tree is always sorted the same way. \
 \texttt{with-keys} is implemented as a recursive macro applying a function to the key value-pair of the root-node of the dictionary and then performs a recursive call on each child node. By doing this the function will be applied to all key value-pairs in the dictionary.
 
 \subsection{match-pattern}
-\texttt{match-pattern} is supposed to choose an expression to evaluate depending on a certain pattern. We did not manage to implement this macro, but a draft can be found as a comment in the bottom of the code file.
 
-Note that the draft only contains the traversing of the pattern list and not the actual matching, which, in our idea of a possible solution, would be done in another macro \texttt{matching}. It should also be noted that the draft does not work, but is only included to briefly describe our ideas of how to solve the problem.
+\texttt{match-pattern} chooses an expression to evaluate depending on a given expression and patterns to match the expression. The macro is implemented as three macros and one function. Each of these will be described briefly.
+
+The \texttt{match-pattern}-macro is the main macro, evaluating the given expression and starts the recursion on the list of patterns.
+
+The \texttt{pattern-match}-macro is made to step through each pattern, one at a time. If a pattern matches the expression the expression belonging to that pattern is evaluated. If it does not match a recursive call is made on the rest of the patterns. If no pattern matches \texttt{nil} is returned.
+
+The \texttt{ismatching}-function takes an evaluated expression and a pattern and tries to match them. If there is a match \texttt{t} is returned, otherwise \texttt{nil}. The match is done by always taking the first element in the pattern. If it is an atom it can be mapped to the first element of the expression and a recursive call is made to check the rest of the pattern. If the first element is a list two recursive calls will be made, one to make sure that the list matches the first element of the expression, and one to match the rest of the pattern. The recursion only returns \texttt{t} if the lists ends at the same time, i.e. they match all the way. If the list would not match somewhere the recursion is stopped and \texttt{nil} is returned.
+
+The \texttt{match}-macro works by the same principle as the \texttt{ismatching}-function but instead of returning \texttt{t} or \texttt{nil} it expands to a nested \texttt{let}-expression with all the assignments that have to be done in the matching. The recursion ends when there are no more assignments to do and the body-expression is inserted. Note that there is no case for patterns that doesn't match. The reason for this is that this macro is only supposed to be used on a pattern that is confirmed to match by the \texttt{ismatching}-function.
+
+The result of using the \texttt{match-pattern}-macro will be code that evaluates the main expression and then tries to match each pattern until a match is found. When a match is found code to do all assignments in the matching is added using nested \texttt{let}-expressions and the innermost expression will be the body corresponding to the chosen match-case. The code will evaluate by doing all assignments and finally evaluating the body.
 
 \end{document}

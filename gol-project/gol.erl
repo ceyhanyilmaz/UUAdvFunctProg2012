@@ -15,11 +15,9 @@ init() ->
 draw() -> 
 	receive
 		{{X,Y},Alive} ->
-			if
-				Alive == 1 ->
-					frame ! {change_cell, X, Y, purple};
-				true ->
-					frame ! {change_cell, X, Y, black}
+			case Alive of
+				1 -> frame ! {change_cell, X, Y, purple};
+				_ -> frame ! {change_cell, X, Y, black}
 			end
 	end,
 	draw().

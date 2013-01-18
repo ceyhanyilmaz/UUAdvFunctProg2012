@@ -1,102 +1,131 @@
 -module(gol).
--compile(export_all).
+-export([gol/3,timer/1,cell/6]).
 
-init() ->
+% Main program
+gol(W,H,Alive) ->
 	frame:init(),
 	frame:set_head("Conway's Game of Life in Erlang"),
 	frame:set_foot("By Jonatan and Anders"),
-	frame:set_w(100),
-	frame:set_h(100),
-	spawn_link(gol,gol,[]).
+	frame:set_w(W),
+	frame:set_h(H),
 
-	%spawn_link(gol,draw,[]).
+	Board = create_board(W,H),
+	init_board(W,H,Board),
+	raiseTheDead(W,Alive,Board),
 
-% TODO: Finish
-draw() -> 
+	spawn(?MODULE,timer,[Board]).
+
+% Set cells to be alive from the beginning
+raiseTheDead(_,[],_) -> ok;
+raiseTheDead(W,[{X,Y}|T],Board) ->
+	lists:nth(Y*W+X,Board) ! {set_state,alive},
+	raiseTheDead(W,T,Board).
+
+% Process to signal cells at a specific interval
+timer(Board) ->
 	receive
-		{{X,Y},Alive} ->
-			case Alive of
-				1 -> frame ! {change_cell, X, Y, purple};
-				_ -> frame ! {change_cell, X, Y, black}
-			end
+		after 100 -> tic(Board)
 	end,
-	draw().
+	timer(Board).
 
-% Old function to draw content for browser
-gol() ->
-    X = random:uniform(20),
-    Y = random:uniform(10),
-    frame ! {change_cell, X, Y, purple},
-    receive 
-        after 100 ->
-                gol:gol()
-        end.
+% Send tic to all cells
+tic([]) -> ok;
+tic([H|T]) -> H ! {tic}, tic(T).
+
+% Create a new board with W*H cells
+create_board(W,H) -> create_board_aux(W,H,0,[]).
+
+% Helper function for create_board
+create_board_aux(W,H,I,Board) when W*H == I -> Board;
+create_board_aux(W,H,I,Board) ->
+	[create_cell(I rem W,I div W) | create_board_aux(W,H,I+1,Board)].
+
+% Initialize all cells to have neighbours
+init_board(W,H,Board) -> init_board_aux(W,H,0,Board,Board).
+
+% Helper function for init_board
+init_board_aux(_,_,_,[],_) -> ok;
+init_board_aux(W,H,I,[Pid|Rest],Board) ->
+	init_cell(Pid, 
+		[lists:nth(1+mod(I-W-1, W*H),Board),
+		 lists:nth(1+mod(I-W, W*H),Board),
+		 lists:nth(1+mod(I-W+1, W*H),Board),
+		 lists:nth(1+mod(I-1, W*H),Board),
+		 lists:nth(1+mod(I+1, W*H),Board),
+		 lists:nth(1+mod(I+W-1, W*H),Board),
+		 lists:nth(1+mod(I+W, W*H),Board),
+		 lists:nth(1+mod(I+W+1, W*H),Board)]),
+	init_board_aux(W,H,I+1,Rest,Board).
+
+% Modulo function that always return a non-negative value
+mod(X,Y) when X > 0 -> X rem Y;
+mod(X,Y) when X < 0 -> Y + X rem Y;
+mod(0,_) -> 0.
 
 
-
-
-% game board
-init(W,H) ->
-	Board = [{X,Y,Pid} || X <- Lists.seq(0,W), Y <- Lists.seq(0,H), Pid <- create_cell(X,Y),
-	init_board(W,H,Board,Board)
-
-init_board(_,_,[],_) -> ok
-init_board(W,H,[{X,Y,Pid}|Rest],Board) ->
-	Pid ! [P || {Xx,Yy,P} <- Board, Xx <- [X-1,X,X+1], Yy <- [Y-1,Y,Y+1], X/=Y],
-	init_board(W,H,Rest,Board).
-
-% cell interface
+% Spawn a new cell and return its PID
 create_cell(X,Y) ->
-	spawn(?MODULE,cell,[X,Y,dead,[]]).
+	spawn(?MODULE,cell,[X,Y,dead,[],0,0]).
 
-init_cell
+% Initialize a cell with new neighbours
+init_cell(Pid, Neighbours) -> Pid ! {init,Neighbours}.
 
-set_state
-
-get_state
-
-cell_tic
-
-
-cell(X,Y,State,Neighbours) ->
+% Cell process 
+cell(X,Y,State,Neighbours,NrLiving,NrReceived) ->
 	receive
-		{test} -> io:format("I am ~s!",[self()])
-	end,
-	cell(X,Y,State,Neighbours).
-
-% A cell holds its coordinate, state and a list of neighbours
-cell(X, Y, State, []) ->
-	receive 
-		{Neighbours} ->
-			cell(X, Y, State, Neighbours)
-	end;
-
-cell(X, Y, State, Neighbours) ->
-	receive
-		{broadcast, Pid} -> 
-			broadcastState(State, Neighbours),
-			Pid ! { self() }
-	end,
-
-	receive
-		{update, Pid2} -> 
-			Pid2 ! { self(), State },
-
-			% TODO
-			case State of 
-				1 -> cell(X, Y, 1, Neighbours); 
-				0 -> cell(X, Y, 0, Neighbours)
+		{init,NewNeighbours} ->
+			cell(X,Y,State,NewNeighbours,NrLiving,NrReceived);
+		{set_state,NewState} ->
+			cell(X,Y,NewState,Neighbours,NrLiving,NrReceived);
+		{tic} -> send_state(State,Neighbours),
+				 cell(X,Y,State,Neighbours,NrLiving,NrReceived);
+		{state,dead} ->
+			case NrReceived of
+				7 -> cell(X,Y,update_cell(X,Y,State,NrLiving),Neighbours,0,0);
+				_ -> cell(X,Y,State,Neighbours,NrLiving,NrReceived+1)
+			end;
+		{state,alive} ->
+			case NrReceived of
+				7 -> cell(X,Y,update_cell(X,Y,State,NrLiving+1),Neighbours,0,0);
+				_ -> cell(X,Y,State,Neighbours,NrLiving+1,NrReceived+1)
 			end
 	end.
 
-% Keep the game updated and synced
-tic(Cells, KeyList, RitaPid) ->
-	%broadcast(Cells, KeyList),
-	%update(Cells, KeyList, RitaPid),
-	timer:apply_after(1005, gol, tic, [Cells, KeyList, RitaPid]).
-	
-% Broadcast its state to all neighbours
-broadcastState(_, []) -> ok;
-broadcastState(Alive, [Neighbour|Neighbours]) ->
-	Neighbour ! {Alive},
-	broadcastState(Alive, Neighbours).
+% Send current state to all neighbours
+send_state(_,[]) -> ok;
+send_state(State,[H|T]) -> H ! {state,State}, send_state(State,T).
+
+% Update the state of a cell and draw the result
+update_cell(X,Y,alive,NrLiving) when NrLiving < 2 ->
+	frame ! {change_cell,X,Y,black},
+	dead;
+update_cell(X,Y,alive,NrLiving) when NrLiving < 4 ->
+	frame ! {change_cell,X,Y,purple},
+	alive;
+update_cell(X,Y,alive,_) ->
+	frame ! {change_cell,X,Y,black},
+	dead;
+update_cell(X,Y,dead,3) ->
+	frame ! {change_cell,X,Y,purple},
+	alive;
+update_cell(X,Y,dead,_) ->
+	frame ! {change_cell,X,Y,black},
+	dead.
+
+% Compile:
+% c(ehtml). c(frame). c(gol).
+
+% TEST CASES
+% Glider
+% gol:gol(40,40,[{5,4},{3,5},{5,5},{4,6},{5,6}]).
+%
+% Lightweight Spaceship
+% gol:gol(40,40,[{6,6},{7,6},{4,7},{5,7},{7,7},{8,7},{4,8},
+%	{5,8},{6,8},{7,8},{5,9},{6,9}]).
+%
+% Pulsar
+% gol:gol(40,40,[{4,1},{5,1},{6,1},{10,1},{11,1},{12,1},{2,3},{7,3},{9,3},
+% {14,3},{2,4},{7,4},{9,4},{14,4},{2,5},{7,5},{9,5},{14,5},{4,6},{5,6},
+% {6,6},{10,6},{11,6},{12,6},{4,8},{5,8},{6,8},{10,8},{11,8},{12,8},{2,9},
+% {7,9},{9,9},{14,9},{2,10},{7,10},{9,10},{14,10},{2,11},{7,11},{9,11},
+% {14,11},{4,13},{5,13},{6,13},{10,13},{11,13},{12,13}]).

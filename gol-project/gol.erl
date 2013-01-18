@@ -34,6 +34,38 @@ gol() ->
                 gol:gol()
         end.
 
+
+
+
+% game board
+init(W,H) ->
+	Board = [{X,Y,Pid} || X <- Lists.seq(0,W), Y <- Lists.seq(0,H), Pid <- create_cell(X,Y),
+	init_board(W,H,Board,Board)
+
+init_board(_,_,[],_) -> ok
+init_board(W,H,[{X,Y,Pid}|Rest],Board) ->
+	Pid ! [P || {Xx,Yy,P} <- Board, Xx <- [X-1,X,X+1], Yy <- [Y-1,Y,Y+1], X/=Y],
+	init_board(W,H,Rest,Board).
+
+% cell interface
+create_cell(X,Y) ->
+	spawn(?MODULE,cell,[X,Y,dead,[]]).
+
+init_cell
+
+set_state
+
+get_state
+
+cell_tic
+
+
+cell(X,Y,State,Neighbours) ->
+	receive
+		{test} -> io:format("I am ~s!",[self()])
+	end,
+	cell(X,Y,State,Neighbours).
+
 % A cell holds its coordinate, state and a list of neighbours
 cell(X, Y, State, []) ->
 	receive 
